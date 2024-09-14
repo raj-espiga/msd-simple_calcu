@@ -1,71 +1,100 @@
 import React, { useState } from 'react';
 import { Text, View, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 
-export default function App() {
-  const [number1, setNumber1] = useState('');
-  const [number2, setNumber2] = useState('');
+const App = () => {
   const [result, setResult] = useState(null);
 
-  const handleAdd = () => {
-    setResult(parseFloat(number1) + parseFloat(number2));
+  const handleAdd = (values) => {
+    setResult(parseFloat(values.number1) + parseFloat(values.number2));
   };
 
-  const handleSubtract = () => {
-    setResult(parseFloat(number1) - parseFloat(number2));
+  const handleSubtract = (values) => {
+    setResult(parseFloat(values.number1) - parseFloat(values.number2));
   };
 
-  const handleMultiply = () => {
-    setResult(parseFloat(number1) * parseFloat(number2));
+  const handleMultiply = (values) => {
+    setResult(parseFloat(values.number1) * parseFloat(values.number2));
   };
 
-  const handleDivide = () => {
-    if (parseFloat(number2) !== 0) {
-      setResult(parseFloat(number1) / parseFloat(number2));
+  const handleDivide = (values) => {
+    if (parseFloat(values.number2) !== 0) {
+      setResult(parseFloat(values.number1) / parseFloat(values.number2));
     } else {
       setResult('Error: Division by zero');
     }
   };
 
-  const handleReset = () => {
-    setNumber1('');
-    setNumber2('');
-    setResult(null);
-  };
+  const validationSchema = Yup.object().shape({
+    number1: Yup.number().required('First number is required'),
+    number2: Yup.number().required('Second number is required'),
+  });
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}> Calculator</Text>
-      <View style={{flexDirection: 'row'}}>
-        <Text style={styles.inputFirst}>First Number:</Text>
-        <TextInput style={styles.inputBox1} keyboardType="numeric" value={number1} onChangeText={setNumber1} />
-      </View>
-      <View style={{flexDirection: 'row'}}>
-        <Text style={styles.inputSecond}>Second Number:</Text>
-        <TextInput style={styles.inputBox2} keyboardType="numeric" value={number2} onChangeText={setNumber2} />
-      </View>
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonRow}>
-          <Button title="Add" onPress={handleAdd} />
+      <Text style={styles.title}>Calculator</Text>
+      <Formik
+        initialValues={{ number1: '', number2: '' }}
+        validationSchema={validationSchema}
+        onSubmit={(values, { resetForm }) => {
+          resetForm();
+        }}
+      >
+        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+          <View>
+            <View style={{ flexDirection: 'row' }}>
+              <Text style={styles.inputFirst}>First Number:</Text>
+              <TextInput
+                style={styles.inputBox1}
+                keyboardType="numeric"
+                value={values.number1}
+                onChangeText={handleChange('number1')}
+                onBlur={handleBlur('number1')}
+              />
+            </View>
+            {errors.number1 && touched.number1 ? (
+                <Text style={{ fontSize: 15, color: 'red', marginLeft: 180, marginTop: 0 }}>{errors.number1}</Text>
+              ) : null}
+            <View style={{ marginTop: 50, flexDirection: 'row' }}>
+              <Text style={styles.inputSecond}>Second Number:</Text>
+              <TextInput
+                style={styles.inputBox2}
+                keyboardType="numeric"
+                value={values.number2}
+                onChangeText={handleChange('number2')}
+                onBlur={handleBlur('number2')}
+              />
+            </View>
+            {errors.number2 && touched.number2 ? (
+                <Text style={{ fontSize: 15, color: 'red', marginLeft: 170, marginTop: 0 }}>{errors.number2}</Text>
+              ) : null}
+            <View style={styles.buttonContainer}>
+              <View style={styles.buttonRow}>
+                <Button title="Add" onPress={() => handleAdd(values)} />
+              </View>
+              <View style={styles.buttonRow}>
+                <Button title="Subtract" onPress={() => handleSubtract(values)} />
+              </View>
+              <View style={styles.buttonRow}>
+                <Button title="Multiply" onPress={() => handleMultiply(values)} />
+              </View>
+              <View style={styles.buttonRow}>
+                <Button title="Divide" onPress={() => handleDivide(values)} />
+              </View>
+            </View>
+            <Text style={styles.result}>
+              Result: {result !== null ? result : ''}
+            </Text>
+            <TouchableOpacity style={styles.resetButton} onPress={handleSubmit}>
+              <Text style={styles.resetButtonText}>Reset</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.buttonRow}>
-          <Button title="Subtract" onPress = {handleSubtract} />
-        </View>
-        <View style={styles.buttonRow}>
-          <Button title="Multiply" onPress={handleMultiply} />
-          </View>
-          <View style={styles.buttonRow}>
-          <Button title="Divide" onPress={handleDivide} />
-        </View>
-      </View>
-      <Text style={styles.result}>
-        Result: {result !== null ? result : ''}
-      </Text>
-      <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-        <Text style={styles.resetButtonText}>Reset</Text>
-      </TouchableOpacity>
+        )}
+      </Formik>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -138,3 +167,5 @@ const styles = StyleSheet.create({
     color: '#007BFF',
   },
 });
+
+export default App;
